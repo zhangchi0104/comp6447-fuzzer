@@ -19,7 +19,7 @@ class ProgramRunner(Runner):
         Return the result of 'subprocess.run()'.
         """
         return subprocess.run(self.program,
-                                inputs=inp,
+                                input=inp,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 universal_newlines=True)
@@ -41,4 +41,4 @@ class ProgramRunner(Runner):
         return (result, outcome)
 
     
-    
+

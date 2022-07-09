@@ -45,7 +45,3 @@ def mutate(s: str) -> str:
     ]
     mutator = random.choice(mutators)
     return mutator(s)
-
-
-for i in range(10):
-    print(repr(mutate("Hello world This is a tiger")))

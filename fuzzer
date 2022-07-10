@@ -12,10 +12,7 @@ import time
 if __name__ == "__main__":
     print("Fuzzing this thing...")
     sampleInput = open(sys.argv[2], 'r')
-
     binary = sys.argv[1]
-    lock = multiprocessing.Lock()
-    futures = []
 
     if bitFlip(sampleInput, binary) == False:
         print("No bad input\n", end="")

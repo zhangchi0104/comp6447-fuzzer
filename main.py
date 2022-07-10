@@ -11,7 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("binary", nargs=2, help="binary to fuzz")
     args = parser.parse_args()
     # get basename
-    txt_name = args.binary[1].split('/')[-1].split['.'][0]
+    txt_name = args.binary[1].split('/')[-1].split('.')[0]
     # reed seeds
     with open(args.binary[1], 'rb') as f:
         seed = f.read()

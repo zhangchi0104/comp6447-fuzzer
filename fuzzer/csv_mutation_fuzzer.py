@@ -132,6 +132,43 @@ class CsvMutationFuzzer(object):
         # remove that byte
         content[row][col] = cell[:byte_index] + cell[byte_index + 1:]
         return content
+    
+    # more fuzzing methods
+    def _insert_multiple_rows(self):
+        """attempt to overflow with large lines of input"""
+        return [[
+            random.randint(0, 0xFFFFFFFF).to_bytes(4, 'little')
+            for _ in range(self.shape[1])
+        ] for _ in range(2000)]
+        
+    def _insert_random_multiple_bytes(self):
+        """attempt to overflow with a large chunk of bytes for a random cell"""
+        content = deepcopy(self._content)
+        # select a cell
+        row, col = self._select_random_cell()
+        cell = content[row][col]
+        # generate new bytes
+        rand_byte = random.randint(0, 0xFFFFFFFF).to_bytes(
+            random.randint(4, 0x6f), 'little')
+        byte_index = random.randint(0, len(cell) - 1)
+        # replace the original cell
+        content[row][col] = cell[:byte_index] + 1000 * rand_byte + cell[byte_index:]
+        return content
+        
+    def _insert_multiple_bytes(self):
+        """attempt to overflow with large a chunk of bytes for each cell"""
+        content = deepcopy(self._content)
+        # iterate each cell
+        for row in range(self.shape[0] - 1):
+            for col in range(self.shape[1] - 1):
+                # replace with 1000 random bytes
+                rand_byte = random.randint(0, 0xFFFFFFFF).to_bytes(
+                    random.randint(4, 0x6f), 'little')
+                content[row][col] = 1000 * rand_byte
+        return content
+        
+        
+    
 
     def __iter__(self):
         return self
@@ -145,6 +182,9 @@ class CsvMutationFuzzer(object):
             self.swap_random_bits,
             self._mutate_random_byte,
             self._insert_random_bytes,
+            self._insert_multiple_rows,
+            self._insert_random_multiple_bytes,
+            self._insert_multiple_bytes
             # self._delete_random_byte,
             # self._empty_csv_random_rows,
             # self._csv_random_rows,

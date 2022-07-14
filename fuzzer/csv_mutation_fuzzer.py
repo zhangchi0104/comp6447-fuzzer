@@ -90,7 +90,7 @@ class CsvMutationFuzzer(object):
         ] for _ in range(random.randint(1, 0xF))]
 
     def _csv_magic_rows(self):
-        cell_size = 0x1
+        cell_size = 0xF7
         return [
             [b'\x80' * cell_size] * self.shape[1],
         ]
@@ -133,6 +133,26 @@ class CsvMutationFuzzer(object):
         content[row][col] = cell[:byte_index] + cell[byte_index + 1:]
         return content
 
+    def _insert_random_bit(self):
+        content = deepcopy(self._content)
+        row, col = self._select_random_cell()
+        cell = content[row][col]
+        all_bits = bits.bits(cell)
+        pos = random.randint(0, len(all_bits) - 1)
+        all_bits.insert(pos, random.randint(0, 1))
+        content[row][col] = bits.unbits(all_bits)
+        return content
+
+    def _delete_random_bit(self):
+        content = deepcopy(self._content)
+        row, col = self._select_random_cell()
+        cell = content[row][col]
+        all_bits = bits.bits(cell)
+        pos = random.randint(0, len(all_bits) - 1)
+        all_bits.pop(pos)
+        content[row][col] = bits.unbits(all_bits)
+        return content
+
     def __iter__(self):
         return self
 
@@ -143,12 +163,14 @@ class CsvMutationFuzzer(object):
             self._flip_random_bit,
             self._swap_random_cell,
             self.swap_random_bits,
+            self._delete_random_bit,
+            self._insert_random_bit,
             self._mutate_random_byte,
             self._insert_random_bytes,
             # self._delete_random_byte,
             # self._empty_csv_random_rows,
             # self._csv_random_rows,
-            # self._csv_magic_rows
+            self._csv_magic_rows
         ])
         # make mutation
         raw = choice()

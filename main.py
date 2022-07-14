@@ -29,16 +29,17 @@ if __name__ == "__main__":
         try:
             # send input and check return code
             outs, err = process.communicate(input_bytes, timeout=0.1)
+            if process.returncode == -11:  #SIGFAULT -> throws exception
+                raise subprocess.CalledProcessError(process.returncode,
+                                                    args.binary[0])
             print(f"{i}: PASSED", end=" | ")
             print(
                 f"input_len = {hex(len(input_bytes))} outs = {outs}, err = {err}, exitcode = {process.returncode}"
             )
-            if process.returncode == -11:  #SIGFAULT -> throws exception
-                raise subprocess.CalledProcessError(process.returncode,
-                                                    args.binary[0])
+
         # if seg fault, break the loop
         except subprocess.CalledProcessError as e:
-            print(f"{i}: Crashed")
+            print(f"{i}: Crashed with input {input_bytes}")
             with open(f'{txt_name}_crash.txt', 'wb') as f:
                 print(input_bytes)
                 pickle.dump(input_bytes, f)

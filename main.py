@@ -4,6 +4,9 @@ import subprocess
 import argparse
 import pickle
 from fuzzer.csv_mutation_fuzzer import CsvMutationFuzzer
+from fuzzer.json_mutation_fuzzer import jsonMutationFuzzer
+from file_type import get_type
+import file_code
 
 if __name__ == "__main__":
     # add arguments
@@ -12,11 +15,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # get basename
     txt_name = args.binary[1].split('/')[-1].split('.')[0]
-    # reed seeds
+    
+    # reed sample_input
     with open(args.binary[1], 'rb') as f:
-        seed = f.read()
+        sample_input = f.read()    
+        
+    # Get file type
+    file_type = get_type(sample_input)
+
     # prepare fuzzer
-    fuzzer = CsvMutationFuzzer(seed)
+    if file_type == file_code.JSON:
+        fuzzer = jsonMutationFuzzer(sample_input)
+    elif file_type == file_code.CSV:
+        fuzzer = CsvMutationFuzzer(sample_input)
+    else:
+        # temp
+        fuzzer = jsonMutationFuzzer(sample_input)
+    
     # run the main loop
     # TODO: connect to gdb with pwntools
     for i in range(1000):

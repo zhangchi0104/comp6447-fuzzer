@@ -56,10 +56,10 @@ if __name__ == "__main__":
             print(f"{i}: Crashed")
             with open(f'{txt_name}_crash.txt', 'wb') as f:
                 print(input_bytes)
-                pickle.dump(input_bytes, f)
+                f.write(input_bytes)
                 break
 
         except subprocess.TimeoutExpired as er:
             print(f"{i}: Timeout")
             with open(f'csv_timeout_{i}.pkl', 'wb') as f:
-                pickle.dump(input_bytes, f)
+                f.write(input_bytes)

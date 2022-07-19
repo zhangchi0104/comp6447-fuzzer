@@ -1,0 +1,5 @@
+{
+    "len":712,
+    "input": "AAAABBBBC4CC",
+    "mBre_data": ["a", "bb"]
+}

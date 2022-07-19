@@ -4,7 +4,7 @@ import subprocess
 import argparse
 import pickle
 from pwn import *
-from mutators.csv_mutation_fuzzer import CsvMutationFuzzer
+from mutators.csv_mutation_fuzzer import CsvMutator
 from mutators.json_mutation_fuzzer import jsonMutationFuzzer
 from file_type import get_type
 import file_code
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     if file_type == file_code.JSON:
         fuzzer = jsonMutationFuzzer(sample_input)
     elif file_type == file_code.CSV:
-        fuzzer = CsvMutationFuzzer(sample_input)
+        fuzzer = CsvMutator(sample_input)
     else:
         # temp
         fuzzer = jsonMutationFuzzer(sample_input)

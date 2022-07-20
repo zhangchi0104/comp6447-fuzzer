@@ -1,5 +1,1 @@
-{
-    "len":712,
-    "input": "AAAABBBBC4CC",
-    "mBre_data": ["a", "bb"]
-}
+{"len": 127, "input": 1073741824, "more_data": 0}

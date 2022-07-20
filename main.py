@@ -6,7 +6,7 @@ import pickle
 from pwn import *
 from mutators.csv_mutation_fuzzer import CsvMutator
 from mutators.json_mutation_fuzzer import jsonMutationFuzzer
-from file_type import get_type
+from file_type import infer_type
 import file_code
 
 if __name__ == "__main__":
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         sample_input = f.read()    
         
     # Get file type
-    file_type = get_type(sample_input)
+    file_type = infer_type(sample_input)
 
     # prepare fuzzer
     if file_type == file_code.JSON:

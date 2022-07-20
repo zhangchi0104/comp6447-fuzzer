@@ -117,6 +117,33 @@ class MutatorBase(object):
         pos = random.randint(0, len(sample) - 1)
         new_byte = random.randint(0, 0xff).to_bytes(1, 'little')
         return sample[:pos] + new_byte + sample[pos + 1:]
+        
+    @classmethod
+    def _known_ints(cls, sample: bytes) -> bytes:
+        """
+        low level byte mutation, replacing a byte in sample with a integers known to cause issues
+        Args:
+            sample (bytes): bytes to be mutated
+
+        Returns:
+            mutated bytes
+        """
+        int_vals = [
+                	(1, 255),
+                	(1, 127),
+                	(1, 0),
+                	(2, 255),
+                	(2, 0),
+                	(4, 255),
+                	(4, 0),
+                	(4, 128),
+                	(4, 64),
+                	(4, 127)
+                	]
+        picked_int = random.choice(int_vals)   	
+        pos = random.randint(0, len(sample) - 1)
+        new_byte = picked_int[1].to_bytes(picked_int[0], 'little')
+        return sample[:pos] + new_byte + sample[pos + 1:]
 
     @classmethod
     def _insert_byte(cls, sample: bytes, pos: Optional[int] = None) -> bytes:

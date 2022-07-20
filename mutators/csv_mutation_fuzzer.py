@@ -20,7 +20,7 @@ class CsvMutator(MutatorBase):
         Args:
             seed: the seed csv bytes to mutate from
         """
-        super().__init__()
+        super().__init__(seed)
         content = seed.splitlines()
         self._content = [[cell for cell in line.split(b',')]
                          for line in content[1:]]
@@ -93,7 +93,7 @@ class CsvMutator(MutatorBase):
         content[row][col] = self._insert_multiple_bytes(cell)
         return content
 
-    def _muatate_delete_random_byte(self):
+    def _mutate_delete_random_byte(self):
         content = deepcopy(self._content)
         # select a random cell
         row, col = self._select_random_cell()

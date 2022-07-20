@@ -1,7 +1,19 @@
 from copy import deepcopy
+import json
 import random
 import pwnlib.util.fiddling as bits
 
+def generate(size: int):
+    ''' Generate JSONs within JSON '''
+    badJson = {}
+
+    currJson = {}
+    for i in range(size):
+        currJson[str(i)] = i
+
+    badJson[str(random.randint(0,9))] = json.dumps(currJson) * size
+    
+    return json.dumps(badJson)
 
 class jsonMutationFuzzer(object):
   def __init__(self, seed):
@@ -29,6 +41,14 @@ class jsonMutationFuzzer(object):
           #mutatedInput = b.decode('ascii').strip()
           
       return b
+
+  def fuzzJson(self):
+    
+    for i in range(10):
+        badJson = generate(i).replace('\\"',"\"")
+    mutatedInput = bytearray(badJson, 'UTF-8')
+    return mutatedInput
+  
   
   def __iter__(self):
       return self
@@ -37,7 +57,8 @@ class jsonMutationFuzzer(object):
       # randomly select a mutations methods
       # inspired from ziqi's code
       choice = random.choice([
-          self._bit_flip
+          self._bit_flip,
+          self.fuzzJson
           # self._delete_random_byte,
           # self._empty_csv_random_rows,
           # self._csv_random_rows,

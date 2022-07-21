@@ -8,6 +8,7 @@ from mutators.csv_mutation_fuzzer import CsvMutator
 from mutators.json_mutation_fuzzer import jsonMutationFuzzer
 from file_type import get_type
 import file_code
+# from mutators.plaintext_mutation_fuzzer import PlaintextFuzzer
 
 if __name__ == "__main__":
     # add arguments
@@ -32,6 +33,7 @@ if __name__ == "__main__":
     else:
         # temp
         fuzzer = jsonMutationFuzzer(sample_input)
+        # fuzzer = PlaintextFuzzer(sample_input)
     
     # run the main loop
     # TODO: connect to gdb with pwntools

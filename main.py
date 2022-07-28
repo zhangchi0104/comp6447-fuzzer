@@ -6,6 +6,7 @@ import pickle
 from pwn import *
 from mutators.csv_mutation_fuzzer import CsvMutator
 from mutators.json_mutation_fuzzer import jsonMutationFuzzer
+from mutators.jpeg_mutation_fuzzer import jpegMutator
 from file_type import infer_type
 import file_code
 
@@ -29,13 +30,15 @@ if __name__ == "__main__":
         fuzzer = jsonMutationFuzzer(sample_input)
     elif file_type == file_code.CSV:
         fuzzer = CsvMutator(sample_input)
+    elif file_type == file_code.JPEG:
+        fuzzer = jpegMutator(sample_input)
     else:
         # temp
         fuzzer = jsonMutationFuzzer(sample_input)
     
     # run the main loop
     # TODO: connect to gdb with pwntools
-    for i in range(1000):        
+    for i in range(5000):        
         process = subprocess.Popen(args.binary[0],
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE)

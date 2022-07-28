@@ -4,6 +4,8 @@ import file_code
 from collections import OrderedDict
 import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
+import xml.etree.ElementTree as ET
+
 
 
 def csv_matcher(sample_raw: bytes):
@@ -75,6 +77,8 @@ def infer_type(sample):
 def get_type(sampleInput):
     if checkJSON(sampleInput):
         return file_code.JSON
+    if checkXML(sampleInput):
+        return file_code.XML
     else:
         return file_code.CSV
 
@@ -95,6 +99,16 @@ def checkJSON(sampleInput):
 
     return True
 
+def checkXML(sampleInput):
+    sampleInput = sampleInput.decode()
+    try:
+        #dom.parseString(sampleInput.read())
+        ET.fromstring(sampleInput)
+    except:
+        print("Not an XML file...")
+        return False
+
+    return True
 
 def checkCSV(sampleInput):
     return True

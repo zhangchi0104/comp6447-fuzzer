@@ -17,7 +17,7 @@ class MutatorBase(object):
 
     """
 
-    def __init__(self, seed: bytes):
+    def __init__(self):
         """
         the constructor
 

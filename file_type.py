@@ -1,10 +1,10 @@
 import json
 import re
+from unittest import case
 import file_code
 from collections import OrderedDict
 import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
-
 
 def csv_matcher(sample_raw: bytes):
     sample = sample_raw.strip()
@@ -68,36 +68,19 @@ MATCHERS = {
 def infer_type(sample):
     for filetype, matcher in MATCHERS.items():
         if matcher(sample):
-            return filetype
+            if filetype == 'jepg':
+                return file_code.JPEG
+            elif filetype == 'elf':
+                return file_code.ELF
+            elif filetype == 'pdf':
+                return file_code.PDF
+            elif filetype == 'csv':
+                return file_code.CSV
+            elif filetype == 'json':
+                return file_code.JSON
+            elif filetype == 'xml':
+                return file_code.XML
     return 'plaintext'
-
-
-def get_type(sampleInput):
-    if checkJSON(sampleInput):
-        return file_code.JSON
-    else:
-        return file_code.CSV
-
-
-# Given the sample input file, determines if it has the same format as a JSON file.
-def checkJSON(sampleInput):
-    print(sampleInput)
-    sampleInput = sampleInput.decode()
-    if sampleInput[0] != '{' and sampleInput[-1] != '}':
-        return False
-
-    try:
-        json.loads(sampleInput)
-    # If an exception is raised, then it is not valid json format.
-    except:
-        print("Not a JSON file...")
-        return False
-
-    return True
-
-
-def checkCSV(sampleInput):
-    return True
 
 
 if __name__ == "__main__":

@@ -118,4 +118,7 @@ class CsvMutator(MutatorBase):
         all_bytes = all_bytes.replace(
             b'\x00',
             random.randint(0x1, 0xff).to_bytes(1, 'little'))
+
+        if all_bytes[-1] != b'\n':
+            all_bytes += b'\n'
         return all_bytes

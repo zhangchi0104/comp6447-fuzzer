@@ -204,6 +204,13 @@ class JpegMutator(MutatorBase):
         dqt['table'] = [random.randbytes(8) for _ in range(8)]
         self._quantization_tables.append(dqt)
 
+    def _mutate_replace_random_dqt(self):
+        table_index = random.randint(0, len(self._quantization_tables) - 1)
+        dqt = {}
+        dqt['id'] = table_index + 1
+        dqt['table'] = [random.randbytes(8) for _ in range(8)]
+        self._quantization_tables.append(dqt)
+
     def _mutate_flip_data(self):
         data_bits = bits.bits(self._body)
         self._body = bits.unbits([1 - bit for bit in data_bits])

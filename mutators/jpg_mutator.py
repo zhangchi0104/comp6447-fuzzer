@@ -32,6 +32,7 @@ class JpegMutator(MutatorBase):
         self._application_meta = {}
         self._seed = seed
         self._sof_info = {}
+        self._sos_info = {}
         self.parse(seed)
 
     def parse(self, seed: bytes):
@@ -48,14 +49,15 @@ class JpegMutator(MutatorBase):
             marker = header[lo:hi]
             marker_len = None
             marker_content = None
-            self._markers.append(marker)
             # extract header content
             if marker != DRI:
                 marker_len = int.from_bytes(header[hi:hi + 2], 'big') - 2
                 marker_content = header[hi + 2:hi + 2 + marker_len]
             if re.match(SOF_MATCHER, marker):
-                height, width = self.parse_sof(marker_content)
-                print(f"Parsed SOF: {width}x{height}")
+                self._sof_info = self.parse_sof(marker_content, marker[1])
+                print(
+                    f"Parsed SOF: {self._sof_info['width']}x{self._sof_info['height']}"
+                )
             elif marker == DHT:
                 print(f"Parsed huffman table at {m.span()[0]}")
                 table = self.parse_huffman_table(marker_content)
@@ -87,10 +89,12 @@ class JpegMutator(MutatorBase):
         self._body = body[2 + 10:-2]
         print(f"marker len(body): {marker_len}")
 
-    def parse_sof(self, marker_content):
-        self._sof_info['precision'] = marker_content[0]
-        self._sof_info['n_components'] = marker_content[5]
-        self._sof_info['components'] = []
+    def parse_sof(self, marker_content, type_byte):
+        sof_info = {}
+        sof_info['precision'] = marker_content[0]
+        sof_info['n_components'] = marker_content[5]
+        sof_info['type'] = type_byte
+        sof_info['components'] = []
         color_info = marker_content[6:]
         for i in range(marker_content[5]):
             component = {}
@@ -100,19 +104,19 @@ class JpegMutator(MutatorBase):
                 color_info[1 + 3 * i] & 0x0f,
             ]
             component['dqt_index'] = color_info[2 + 3 * i]
-            self._sof_info['components'].append(component)
+            sof_info['components'].append(component)
         height = int.from_bytes(marker_content[1:3], 'big')
         width = int.from_bytes(marker_content[3:5], 'big')
-        self._height = height
-        self._width = width
-        return height, width
+        sof_info['height'] = height
+        sof_info['width'] = width
+        return sof_info
 
-    def assemble_sof(self):
+    def assemble_sof(self, sof_info):
         res = b''
-        res += self._sof_info['precision'].to_bytes(1, 'big')
-        res += self._height.to_bytes(2, 'big')
-        res += self._width.to_bytes(2, 'big')
-        res += self._sof_info['n_components'].to_bytes(1, 'big')
+        res += sof_info['precision'].to_bytes(1, 'big')
+        res += sof_info['height'].to_bytes(2, 'big')
+        res += sof_info['width'].to_bytes(2, 'big')
+        res += sof_info['n_components'].to_bytes(1, 'big')
         for i in range(self._sof_info['n_components']):
             component = self._sof_info['components'][i]
             component_bytes = b''
@@ -121,7 +125,9 @@ class JpegMutator(MutatorBase):
                                 component['scale'][0]).to_bytes(1, 'big')
             component_bytes += component['dqt_index'].to_bytes(1, 'big')
             res += component_bytes
-        return res
+        marker = b'\xff' + sof_info['type'].to_bytes(1, 'big')
+        length = len(res) + 2
+        return marker + length.to_bytes(2, 'big') + res
 
     def parse_huffman_table(self, content: bytes):
         table = {}
@@ -150,7 +156,9 @@ class JpegMutator(MutatorBase):
             code_by_size += len(e).to_bytes(1, 'big')
             if len(e) > 0:
                 encodings += e
-        return raw + code_by_size + encodings
+        raw += code_by_size + encodings
+        length = len(raw) + 2
+        return DHT + length.to_bytes(2, 'big') + raw
 
     def parse_dqt(self, content: bytes):
         res = {}
@@ -162,7 +170,8 @@ class JpegMutator(MutatorBase):
         res = b''
         res += table['id'].to_bytes(1, 'big')
         res += b''.join(table['table'])
-        return res
+        length = len(res) + 2
+        return DQT + length.to_bytes(2, 'big') + res
 
     def parse_sos(self, content):
         res = {}
@@ -189,7 +198,8 @@ class JpegMutator(MutatorBase):
         res += content['spectral_select'][0].to_bytes(1, 'big')
         res += content['spectral_select'][1].to_bytes(1, 'big')
         res += content['successive_approx'].to_bytes(1, 'big')
-        return res
+        length = len(res) + 2
+        return SOS + length.to_bytes(2, 'big') + res
 
     def _mutate_change_cell_in_dqt(self):
         table_index = random.randint(0, len(self._quantization_tables) - 1)
@@ -216,47 +226,28 @@ class JpegMutator(MutatorBase):
 
     def format_output(self, mutated: bytes = b''):
         header = b""
-        dht_index = 0
-        dqt_index = 0
-        comment_index = 0
-        for marker in self._markers:
-            if re.match(SOF_MATCHER, marker):
-                sof_bytes = self.assemble_sof()
-                length = len(sof_bytes) + 2
-                header += marker + length.to_bytes(2, 'big')
-                header += sof_bytes
-            elif marker == DHT:
-                table = self._huffman_tables[dht_index]
-                table_bytes = self.assemble_huffman_table(table)
-                length = len(table_bytes) + 2
-                header += marker + length.to_bytes(2, 'big')
-                header += table_bytes
-                dht_index += 1
-            elif marker == DQT:
-                table = self._quantization_tables[dqt_index]
-                table_bytes = self.assemble_dqt(table)
-                length = len(table_bytes) + 2
-                header += marker + length.to_bytes(2, 'big')
-                header += table_bytes
-                dqt_index += 1
-            elif marker == DRI:
-                header += marker + int.to_bytes(self._restart_interval, 2,
-                                                'big')
-            elif re.match(br'\xff[\xe0-\xe9\xea-\xef]', marker):
-                index = int.from_bytes(marker, 'big') - 0xffe0
-                length = len(self._application_meta[index]) + 2
-                header += marker + length.to_bytes(2, 'big')
-                header += self._application_meta[index]
-            elif marker == COM:
-                length = len(self._comments[comment_index]) + 2
-                header += marker + length.to_bytes(2, 'big')
-                header += self._comments[comment_index]
-                comment_index += 1
+        # assemble application header
+        for key, val in self._application_meta.items():
+            marker = key + 0xffe0
+            marker = marker.to_bytes(2, 'big')
+            content_len = len(val) + 2
+            header += marker + content_len.to_bytes(2, 'big') + val
 
-        sos = self.assemble_sos(self._sos_info)
-        sos_len = len(sos) + 2
-        return SOI + header + SOS + sos_len.to_bytes(
-            2, 'big') + sos + self._body + EOI
+        # assemble quantization tables
+        for table in self._quantization_tables:
+            header += self.assemble_dqt(table)
+
+        # assemble sof info
+        header += self.assemble_sof(self._sof_info)
+
+        # assemble huffman tables
+        for table in self._huffman_tables:
+            header += self.assemble_huffman_table(table)
+
+        # assemble sos
+        header += self.assemble_sos(self._sos_info)
+
+        return SOI + header + self._body + EOI
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ from collections import OrderedDict
 import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
 
+
 def csv_matcher(sample_raw: bytes):
     sample = sample_raw.strip()
     lines = sample.split(b'\n')
@@ -56,7 +57,7 @@ def pdf_matcher(sample_raw: bytes):
 
 
 MATCHERS = {
-    "jepg": jepg_matcher,
+    "jpeg": jepg_matcher,
     "elf": elf_matcher,
     "pdf": pdf_matcher,
     "csv": csv_matcher,
@@ -68,18 +69,7 @@ MATCHERS = {
 def infer_type(sample):
     for filetype, matcher in MATCHERS.items():
         if matcher(sample):
-            if filetype == 'jepg':
-                return file_code.JPEG
-            elif filetype == 'elf':
-                return file_code.ELF
-            elif filetype == 'pdf':
-                return file_code.PDF
-            elif filetype == 'csv':
-                return file_code.CSV
-            elif filetype == 'json':
-                return file_code.JSON
-            elif filetype == 'xml':
-                return file_code.XML
+            return filetype
     return 'plaintext'
 
 

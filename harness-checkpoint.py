@@ -4,10 +4,12 @@ from argparse import ArgumentParser
 from pwn import log, PTY
 import mutators
 from file_type import infer_type
+from mutators import JpegMutator
 
 FUZZERS_BY_TYPE = {
     "csv": mutators.CsvMutator,
-    "json": mutators.jsonMutationFuzzer
+    "json": mutators.jsonMutationFuzzer,
+    "jpeg": JpegMutator
 }
 
 # pwn.context.log_level = 'debug'
@@ -155,4 +157,4 @@ if __name__ == "__main__":
     binary, seed = args.args
 
     runner = Harness(binary, seed)
-    runner.start()
+    runner.start(1)

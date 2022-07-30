@@ -33,7 +33,6 @@ class JpegMutator(MutatorBase):
         self._seed = seed
         self._sof_info = {}
         self.parse(seed)
-        # sself._mutate_methods = [self._mutate_update_sof]
 
     def parse(self, seed: bytes):
         header, _, body = seed.partition(SOS)
@@ -82,9 +81,10 @@ class JpegMutator(MutatorBase):
 
         marker = SOS
         marker_len = int.from_bytes(body[0:2], 'big') - 2
+        print(marker_len)
         sos_content = body[2:2 + 10]
         self._sos_info = self.parse_sos(sos_content)
-        self._body = body[2 + 10:]
+        self._body = body[2 + 10:-2]
         print(f"marker len(body): {marker_len}")
 
     def parse_sof(self, marker_content):
@@ -191,6 +191,16 @@ class JpegMutator(MutatorBase):
         res += content['successive_approx'].to_bytes(1, 'big')
         return res
 
+    def _mutate_change_cell_in_dqt(self):
+        table_index = random.randint(0, len(self._quantization_tables) - 1)
+        row_index = random.randint(0, 7)
+        col_index = random.randint(0, 7)
+        print(self._quantization_tables[table_index]['table'], flush=True)
+        row = self._quantization_tables[table_index]['table'][row_index]
+        self._quantization_tables[table_index]['table'][
+            row_index] = row[:col_index] + random.randbytes(
+                1) + row[col_index + 1:]
+
     @property
     def marker_matcher(self):
         markers = [
@@ -244,7 +254,9 @@ class JpegMutator(MutatorBase):
                 comment_index += 1
 
         sos = self.assemble_sos(self._sos_info)
-        return SOI + header + SOS + sos + self._body + EOI
+        sos_len = len(sos) + 2
+        return SOI + header + SOS + sos_len.to_bytes(
+            2, 'big') + sos + self._body + EOI
 
 
 if __name__ == '__main__':
@@ -254,4 +266,4 @@ if __name__ == '__main__':
         m = JpegMutator(original)
 
         formatted = m.format_output(b"")
-        print(len(formatted) == len(original))
+        print(formatted == original)

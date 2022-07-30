@@ -47,8 +47,11 @@ class MutatorBase(object):
         and formats the generated input by calling `self.format_output`
         """
         choice = random.choice(self._mutate_methods)
+        name = choice.__name__
+        if name.startswith("_mutate_"):
+            name = name[8:]
         new_content = choice()
-        return self.format_output(new_content)
+        return self.format_output(new_content), name
 
     # Common underlying mutators
     @classmethod
@@ -117,7 +120,7 @@ class MutatorBase(object):
         pos = random.randint(0, len(sample) - 1)
         new_byte = random.randint(0, 0xff).to_bytes(1, 'little')
         return sample[:pos] + new_byte + sample[pos + 1:]
-        
+
     @classmethod
     def _known_ints(cls, sample: bytes) -> bytes:
         """
@@ -128,19 +131,9 @@ class MutatorBase(object):
         Returns:
             mutated bytes
         """
-        int_vals = [
-                	(1, 255),
-                	(1, 127),
-                	(1, 0),
-                	(2, 255),
-                	(2, 0),
-                	(4, 255),
-                	(4, 0),
-                	(4, 128),
-                	(4, 64),
-                	(4, 127)
-                	]
-        picked_int = random.choice(int_vals)   	
+        int_vals = [(1, 255), (1, 127), (1, 0), (2, 255), (2, 0), (4, 255),
+                    (4, 0), (4, 128), (4, 64), (4, 127)]
+        picked_int = random.choice(int_vals)
         pos = random.randint(0, len(sample) - 1)
         new_byte = picked_int[1].to_bytes(picked_int[0], 'little')
         return sample[:pos] + new_byte + sample[pos + 1:]

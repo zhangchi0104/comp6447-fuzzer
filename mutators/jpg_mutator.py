@@ -1,7 +1,8 @@
 from io import BytesIO
 import re
-
+from pwnlib.util import fiddling as bits
 from numpy import byte
+from regex import D
 if __name__ == '__main__':
     from mutator_base import MutatorBase
 else:
@@ -55,27 +56,16 @@ class JpegMutator(MutatorBase):
                 marker_content = header[hi + 2:hi + 2 + marker_len]
             if re.match(SOF_MATCHER, marker):
                 self._sof_info = self.parse_sof(marker_content, marker[1])
-                print(
-                    f"Parsed SOF: {self._sof_info['width']}x{self._sof_info['height']}"
-                )
             elif marker == DHT:
-                print(f"Parsed huffman table at {m.span()[0]}")
                 table = self.parse_huffman_table(marker_content)
                 self._huffman_tables.append(table)
             elif marker == DQT:
                 table = self.parse_dqt(marker_content)
                 self._quantization_tables.append(table)
-                print(f"Parsed quantization table at {m.span()[0]}")
             elif marker == DRI:
                 self._restart_interval = int.from_bytes(
                     header[lo + 2:lo + 4], 'big')
-                print(
-                    f"Parsed restart interval at {m.span()[0]} : {self._restart_interval}"
-                )
             elif re.match(br'\xff[\xe0-\xe9\xea-\xef]', marker):
-                print(
-                    f"Parsed application specific marker {marker} at {m.span()[0]}"
-                )
                 index = int.from_bytes(marker, 'big') - 0xffe0
                 self._application_meta[index] = marker_content
             elif marker == COM:
@@ -83,11 +73,9 @@ class JpegMutator(MutatorBase):
 
         marker = SOS
         marker_len = int.from_bytes(body[0:2], 'big') - 2
-        print(marker_len)
         sos_content = body[2:2 + 10]
         self._sos_info = self.parse_sos(sos_content)
         self._body = body[2 + 10:-2]
-        print(f"marker len(body): {marker_len}")
 
     def parse_sof(self, marker_content, type_byte):
         sof_info = {}
@@ -205,11 +193,35 @@ class JpegMutator(MutatorBase):
         table_index = random.randint(0, len(self._quantization_tables) - 1)
         row_index = random.randint(0, 7)
         col_index = random.randint(0, 7)
-        print(self._quantization_tables[table_index]['table'], flush=True)
         row = self._quantization_tables[table_index]['table'][row_index]
         self._quantization_tables[table_index]['table'][
             row_index] = row[:col_index] + random.randbytes(
                 1) + row[col_index + 1:]
+
+    def _mutate_add_new_dqt(self):
+        dqt = {}
+        dqt['id'] = len(self._quantization_tables) + 1
+        dqt['table'] = [random.randbytes(8) for _ in range(8)]
+        self._quantization_tables.append(dqt)
+
+    def _mutate_flip_data(self):
+        data_bits = bits.bits(self._body)
+        self._body = bits.unbits([1 - bit for bit in data_bits])
+
+    def _mutate_replace_magic_sof(self):
+        self._sof_info['height'] = 0xffff
+        self._sof_info['width'] = 0xffff
+
+    def _mutate_replace_random_huffman_table(self):
+        table = {}
+        table_index = random.randint(0, len(self._huffman_tables) - 1)
+        table['class'] = random.randint(0, 1)
+        table['destination'] = random.randint(0, 1)
+        table['encodings'] = []
+        for _ in range(16):
+            n_encodings = random.randint(1, 0xff)
+            table['encodings'].append(random.randbytes(n_encodings))
+        self._huffman_tables[table_index] = table
 
     @property
     def marker_matcher(self):
@@ -246,7 +258,7 @@ class JpegMutator(MutatorBase):
 
         # assemble sos
         header += self.assemble_sos(self._sos_info)
-
+        self.parse(self._seed)
         return SOI + header + self._body + EOI
 
 
@@ -255,6 +267,7 @@ if __name__ == '__main__':
     with open('./tests/jpg1.txt', 'rb') as f:
         original = f.read()
         m = JpegMutator(original)
-
-        formatted = m.format_output(b"")
-        print(formatted == original)
+        m._mutate_replace_magic_sof()
+        out = m.format_output()
+        with open('./jpg1_mutated.txt', 'wb') as f1:
+            f1.write(out)

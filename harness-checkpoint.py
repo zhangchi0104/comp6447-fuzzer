@@ -114,7 +114,7 @@ class Harness(object):
         for i in range(n_runs):
 
             # get input
-            input_bytes = next(self._fuzzer)
+            input_bytes, name = next(self._fuzzer)
             # print(input_bytes, end = ' | ')
             try:
                 # send input and check return code
@@ -122,12 +122,13 @@ class Harness(object):
                                                              timeout=0.1)
                 exitcode = self._binary_process.returncode
                 if exitcode >= 0:
-                    print(f"{i}: PASSED | ", end="")
+                    print(f"{i} PASSED | ", end="")
                     print(f"exitcode: {exitcode}")
                     print("=" * 40)
-                    print(f"\tinput_len = {hex(len(input_bytes))}")
-                    print(f"\tstdout = {outs}")
-                    print(f"\tstderr = {err}")
+                    print(f"\t{'method:':<12}{name} ")
+                    print(f"\t{'input_len:':<12}{hex(len(input_bytes))}")
+                    print(f"\t{'stdout:':<12}{outs}")
+                    print(f"\t{'stderr:':<12}{b'' if err is None else err}")
 
                 else:  #SIGFAULT -> throws exception
                     raise subprocess.CalledProcessError(
@@ -157,4 +158,4 @@ if __name__ == "__main__":
     binary, seed = args.args
 
     runner = Harness(binary, seed)
-    runner.start(1)
+    runner.start(10)

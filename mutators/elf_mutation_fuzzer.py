@@ -1,12 +1,10 @@
 from copy import deepcopy
-
-from sympy import content
 from .mutator_base import MutatorBase
 import random
 import pwnlib.util.fiddling as bits
 
 
-class PlaintextFuzzer(MutatorBase):
+class ELFFuzzer(MutatorBase):
     """
         A fuzzer randomly generates inputs based on mutation of the seeds
         It implements python's generator
@@ -30,7 +28,7 @@ class PlaintextFuzzer(MutatorBase):
         # mutation methods
         # self.mutators = ["nothing", "addChar", "null", "newline", "format", "ascii", "largeNeg", "largePos", "zero"]
         # a list of malicious bytes
-        self.badBytes = self.getBadBytes()
+        # self.badBytes = self.getBadBytes()
         
     # Append character padding
     def _mutate_add_char1(self):
@@ -75,13 +73,13 @@ class PlaintextFuzzer(MutatorBase):
     def _mutate_format_string1(self):
         content = deepcopy(self._content)
         for i in range(len(content)):
-            content[i] += b'%s' * 2000
+            content[i] += b'%s%x%p%n' * 2000
         return content
     
     def _mutate_format_string2(self):
         content = deepcopy(self._content)
         for i in range(len(content[1: ])):
-            content[i + 1] += b'%s' * 2000
+            content[i + 1] += b'%s%x%p%n' * 2000
         return content
     
     # Append ascii characters
@@ -99,30 +97,31 @@ class PlaintextFuzzer(MutatorBase):
                 content[i + 1] += bytes(chr(count), encoding="utf-8")
         return content
     
+    
     # Change seed to a large negative number
     def _mutate_large_negNum1(self):
         content = deepcopy(self._content)
         for i in range(len(content)):
-            content[i] = b'-99999999'
+            content[i] = b'-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
         return content
     
     def _mutate_large_negNum2(self):
         content = deepcopy(self._content)
         for i in range(len(content[1: ])):
-            content[i + 1] = b'-99999999'
+            content[i + 1] = b'-99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
         return content
     
     # same as negNum1 but with positive num
     def _mutate_large_num1(self):
         content = deepcopy(self._content)
         for i in range(len(content)):
-            content[i] = b'99999999'
+            content[i] = b'99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
         return content
     
     def _mutate_large_num2(self):
         content = deepcopy(self._content)
         for i in range(len(content[1: ])):
-            content[i + 1] = b'99999999'
+            content[i + 1] = b'999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
         return content
     
     # # mutate into zero
@@ -138,43 +137,14 @@ class PlaintextFuzzer(MutatorBase):
             content[i + 1] = b'0'
         return content
     
-    def _mutate_null1(self):
-        content = deepcopy(self._content)
-        for i in range(len(content[1: ])):
-            content[i] = b'\0'
-        return content
-    
-    def _mutate_null2(self):
-        content = deepcopy(self._content)
-        for i in range(len(content[1: ])):
-            content[i] = b'\0'
-        return content
-    
-    def _mutate_test(self):
-        content = deepcopy(self._content)
-        for i in range(len(content)):
-            content[i] += b'\x04'
-        return content
-    
-    # helper function
-    def getBadBytes(self):
-        l = []
-        count = 0
-        while count <= 127:
-            if count < 48 or count > 122:
-                l.append(chr(count))
-            count += 1
-        l = l + ["a", "%s", "-99999999", "99999999"]
-        return l
-    
     # mutate a random byte in a list of string
-    def _mutate_randomChar(self):
-        content = deepcopy(self._content)
-        pickLine = random.randint(0, len(content)-1)
-        pickChar = random.randint(0, len(content[pickLine])-1)
-        pickRandomChar = self.badBytes[random.randint(0, len(self.badBytes)-1)]
-        content[pickLine] = content[pickLine][:pickChar] + bytes(pickRandomChar, encoding="utf-8") + content[pickLine][pickChar+1:]
-        return content
+    # def _mutate_replace_random_byte(self):
+    #     content = deepcopy(self._content)
+    #     pos = random.randint(0, len(content) - 1)
+    #     sample_bits = bits.bits(content[pos])
+    #     pos = random.randint(0, len(sample_bits) - 1)
+    #     sample_bits[pos] = 1 - sample_bits[pos]
+    #     return bits.unbits(sample_bits)
 
     
     
@@ -187,9 +157,3 @@ class PlaintextFuzzer(MutatorBase):
             b'\x00',
             random.randint(0x1, 0xff).to_bytes(1, 'little'))
         return all_bytes
-    
-    
-    
-        
-        
-        

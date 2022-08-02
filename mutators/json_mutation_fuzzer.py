@@ -1,8 +1,21 @@
 from copy import deepcopy
-from .mutator_base import MutatorBase
 import json
 import random
 import pwnlib.util.fiddling as bits
+from .mutator_base import MutatorBase
+
+
+def generate(size: int):
+    ''' Generate JSONs within JSON '''
+    badJson = {}
+
+    currJson = {}
+    for i in range(size):
+        currJson[str(i)] = i
+
+    badJson[str(random.randint(0, 9))] = json.dumps(currJson) * size
+
+    return json.dumps(badJson)
 
 
 class jsonMutationFuzzer(MutatorBase):
@@ -12,7 +25,7 @@ class jsonMutationFuzzer(MutatorBase):
       args:
           seed: the seed csv bytes to mutate from
       """
-        super().__init__()
+        super().__init__(seed)
         self._content = json.loads(seed)
 
     def _mutate_bit_flip(self):
@@ -35,24 +48,12 @@ class jsonMutationFuzzer(MutatorBase):
         #mutatedInput = b.decode('ascii').strip()
         return b
 
-    def _mutate_add_known_int(self):
-        int_vals = [
-            0xFF, 0x7F, 0x00, 0xFFFF, 0x0000, 0xFFFFFFFF, 0x00000000,
-            0x80000000, 0x40000000, 0x7FFFFFFF
-        ]
+    def _mutate_fuzzJson(self):
 
-        sampleInput = self._content
-        pos = random.randint(0, len(sampleInput) - 1)
-        picked_int = random.choice(int_vals)
-
-        for i, member in enumerate(sampleInput):
-            if i == pos:
-                sampleInput[member] = picked_int
-
-        # Once we have flipped the bits, we want to decode this back into a string
-        # that can be passed in as input to the binary
-        #mutatedInput = b.decode('ascii').strip()
-        return json.dumps(sampleInput).encode()
+        for i in range(10):
+            badJson = generate(i).replace('\\"', "\"")
+        mutatedInput = bytearray(badJson, 'UTF-8')
+        return mutatedInput
 
     def format_output(self, raw):
         # construct the csv file body

@@ -5,6 +5,8 @@ import file_code
 from collections import OrderedDict
 import xml.dom.minidom as dom
 from xml.parsers.expat import ExpatError
+import xml.etree.ElementTree as ET
+
 
 
 def csv_matcher(sample_raw: bytes):

@@ -1,5 +1,6 @@
-import imp
 from mutators.mutator_base import MutatorBase
 from mutators.csv_mutation_fuzzer import CsvMutator
 from mutators.json_mutation_fuzzer import jsonMutationFuzzer
 from mutators.jpg_mutator import JpegMutator
+from mutators.xml_fuzzer import XMLMutator
+from mutators.xml_mutation_fuzzer import XMLMutationFuzzer

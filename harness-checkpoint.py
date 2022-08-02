@@ -1,7 +1,7 @@
 import subprocess
 from os import PathLike
 from argparse import ArgumentParser
-from pwn import log, PTY
+from pwn import log
 import mutators
 from file_type import infer_type
 from mutators import JpegMutator
@@ -9,7 +9,8 @@ from mutators import JpegMutator
 FUZZERS_BY_TYPE = {
     "csv": mutators.CsvMutator,
     "json": mutators.jsonMutationFuzzer,
-    "jpeg": JpegMutator
+    "jpeg": JpegMutator,
+    "xml": mutators.XMLMutator,
 }
 
 # pwn.context.log_level = 'debug'
@@ -62,7 +63,8 @@ class Harness(object):
 
         self._binary_process = subprocess.Popen(self._binary_path,
                                                 stdin=subprocess.PIPE,
-                                                stdout=subprocess.PIPE)
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE)
 
         self._fuzzer = FUZZERS_BY_TYPE[seed_type](seed_content)
 
@@ -107,7 +109,8 @@ class Harness(object):
         """
         self._binary_process = subprocess.Popen(self._binary_path,
                                                 stdin=subprocess.PIPE,
-                                                stdout=subprocess.PIPE)
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE)
 
     def start(self, n_runs=500):
         txt_name = self._binary_path.split('/')[-1].split('.')[0]
@@ -119,35 +122,34 @@ class Harness(object):
             try:
                 # send input and check return code
                 outs, err = self._binary_process.communicate(input_bytes,
-                                                             timeout=0.1)
+                                                             timeout=0.5)
                 exitcode = self._binary_process.returncode
-                if exitcode >= 0:
-                    print(f"{i} PASSED | ", end="")
-                    print(f"exitcode: {exitcode}")
-                    print("=" * 40)
-                    print(f"\t{'method:':<12}{name} ")
-                    print(f"\t{'input_len:':<12}{hex(len(input_bytes))}")
-                    print(f"\t{'stdout:':<12}{outs}")
-                    print(f"\t{'stderr:':<12}{b'' if err is None else err}")
+                print(f"{i+1} {'PASSED' if exitcode >= 0 else 'CRASHED'} | ",
+                      end="")
+                print(f"exitcode: {exitcode}")
+                print("=" * 40)
+                print(f"\t{'method:':<12}{name} ")
+                print(f"\t{'input_len:':<12}{hex(len(input_bytes))}")
+                print(f"\t{'stdout:':<12}{outs}")
+                print(f"\t{'stderr:':<12}{err}")
 
-                else:  #SIGFAULT -> throws exception
+                if exitcode < 0:  #SIGFAULT -> throws exception
                     raise subprocess.CalledProcessError(
                         self._binary_process.returncode, self._binary_path)
             # if seg fault, break the loop
             except subprocess.CalledProcessError as e:
                 print(f"Program Crashed: exitcode = {exitcode}")
                 print(f"\tReason: {self.EXITCODES[-exitcode]}")
-                print(
-                    f"Written input crashed the program to {txt_name}-crashed.txt"
-                )
+                print(f"Dumped badinput to {txt_name}-crashed.txt")
                 with open(f'{txt_name}_crash.txt', 'wb') as f:
                     f.write(input_bytes)
                     break
 
             except subprocess.TimeoutExpired as er:
                 print(f"{i}: Timeout")
-                with open(f'csv_timeout_{i}.pkl', 'wb') as f:
+                with open(f'{txt_name}_timeout.txt', 'wb') as f:
                     f.write(input_bytes)
+                break
             self._reset()
 
 
@@ -158,4 +160,4 @@ if __name__ == "__main__":
     binary, seed = args.args
 
     runner = Harness(binary, seed)
-    runner.start(5000)
+    runner.start(1000)

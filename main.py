@@ -161,4 +161,4 @@ if __name__ == "__main__":
     binary, seed = args.args
 
     runner = Harness(binary, seed)
-    runner.start(1000)
+    runner.start(5000)

@@ -9,6 +9,7 @@ from mutators.json_mutation_fuzzer import jsonMutationFuzzer
 from mutators.jpeg_mutation_fuzzer import jpegMutator
 from file_type import infer_type
 import file_code
+from mutators.plaintext_mutation_fuzzer import PlaintextFuzzer
 
 if __name__ == "__main__":
     # add arguments
@@ -17,11 +18,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # get basename
     txt_name = args.binary[1].split('/')[-1].split('.')[0]
-    
+
     # reed sample_input
     with open(args.binary[1], 'rb') as f:
-        sample_input = f.read()    
-        
+        sample_input = f.read()
+
     # Get file type
     file_type = infer_type(sample_input)
 
@@ -34,11 +35,12 @@ if __name__ == "__main__":
         fuzzer = jpegMutator(sample_input)
     else:
         # temp
-        fuzzer = jsonMutationFuzzer(sample_input)
-    
+        # fuzzer = jsonMutationFuzzer(sample_input)
+        fuzzer = PlaintextFuzzer(sample_input)
+
     # run the main loop
     # TODO: connect to gdb with pwntools
-    for i in range(5000):        
+    for i in range(5000):
         process = subprocess.Popen(args.binary[0],
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE)
@@ -66,4 +68,3 @@ if __name__ == "__main__":
             print(f"{i}: Timeout")
             with open(f'csv_timeout_{i}.pkl', 'wb') as f:
                 f.write(input_bytes)
-        

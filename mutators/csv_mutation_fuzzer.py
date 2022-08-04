@@ -20,7 +20,7 @@ class CsvMutator(MutatorBase):
         Args:
             seed: the seed csv bytes to mutate from
         """
-        super().__init__()
+        super().__init__(seed)
         content = seed.splitlines()
         self._content = [[cell for cell in line.split(b',')]
                          for line in content[1:]]

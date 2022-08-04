@@ -13,11 +13,10 @@ class XMLMutator(MutatorBase):
         super().__init__()
         self._content = ET.ElementTree(ET.fromstring(seed))
         self._seed = seed
-        self._raw = None
 
-    def format_output(self, use_raw=False):
-        if use_raw:
-            return self._raw
+    def format_output(self, data):
+        if data:
+            return data
         res = ET.tostring(self._content.getroot(), method='xml')
         self._content = ET.ElementTree(ET.fromstring(self._seed))
         return res
@@ -45,8 +44,14 @@ class XMLMutator(MutatorBase):
     def _mutate_recursion_overflow(self):
         # Python breaks when using ET.ElementTree to parse
         # Have to do it with raw string
-        self._raw = b'<fuz>' * 0xffff + b'</fuz>' * 0xffff
-        return True
+        return b'<fuz>' * 0xffff + b'</fuz>' * 0xffff
+
+    def _mutate_alter_href(self):
+
+        def alter_href(node: ET.Element):
+            node.set("href", "%s" * 10)
+
+        self._recusive_apply(self.root, alter_href)
 
     @property
     def root(self):

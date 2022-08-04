@@ -25,7 +25,7 @@ class jsonMutationFuzzer(MutatorBase):
       args:
           seed: the seed csv bytes to mutate from
       """
-        super().__init__(seed)
+        super().__init__()
         self._content = json.loads(seed)
 
     def _mutate_bit_flip(self):

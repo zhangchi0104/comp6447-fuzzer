@@ -89,7 +89,7 @@ To detect the filetype, it checks certain headers and/or tails of file. In detai
 The harness will instantiate the header based on the filetype detected
 
 
-### Improvements
+## Improvements
 - Detect code coverage
 - Coverage based mutations
     - With coverage based mutations, we can achieve a higher rate of success since we mutate input based on if a new code path is breached. 

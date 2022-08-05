@@ -8,7 +8,6 @@ from .mutator_base import MutatorBase
 def generate(size: int):
     ''' Generate JSONs within JSON '''
     badJson = {}
-
     currJson = {}
     for i in range(size):
         currJson[str(i)] = i
@@ -33,8 +32,6 @@ class jsonMutationFuzzer(MutatorBase):
         pos = random.randint(0, len(sampleInput) - 1)
 
         for _ in range(0, 500):
-            # convert the input into a bytearray
-            #print(sampleInput)
             b = bytearray(sampleInput, 'UTF-8')
 
             # Then we search through the entire bytearray created, and randomly
@@ -42,10 +39,6 @@ class jsonMutationFuzzer(MutatorBase):
             for i in range(0, len(b)):
                 if random.randint(0, 20) == 1:
                     b[i] ^= random.getrandbits(7)
-
-        # Once we have flipped the bits, we want to decode this back into a string
-        # that can be passed in as input to the binary
-        #mutatedInput = b.decode('ascii').strip()
         return b
 
     def _mutate_fuzzJson(self):

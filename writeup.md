@@ -18,7 +18,7 @@ We created a MutatorBase which is the base class for all Mutators, it has predfi
 - Insert multiple new rows: Attempt to overflow with large lines of input
 
 ### JSON:
-JSON Object within JSON: Generating a JSON object within a JSON object
+- JSON Object within JSON: Generating a JSON object within a JSON object
 
 ### XML:
 - Format Strings in URL: Parsing through XML to reach URLs and modifying them to insert format strings

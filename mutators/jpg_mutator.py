@@ -1,8 +1,6 @@
 from io import BytesIO
 import re
 from pwnlib.util import fiddling as bits
-from numpy import byte
-from regex import D
 if __name__ == '__main__':
     from mutator_base import MutatorBase
 else:

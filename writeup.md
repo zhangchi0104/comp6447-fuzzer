@@ -7,9 +7,15 @@ We created a MutatorBase which is the base class for all Mutators, it has predfi
 
 ### Usage
 
-`python3 main.py [binary] [sample_input.txt]`
-e.g 
+`python3 main.py [binary] [sample_input]`
+
+E.g
+
 `python3 main.py csv1 csv1.txt`
+
+or
+
+`./fuzzer [binary] [sample_input]`
 
 ## The binaries our fuzzer crashes and their methods:
 ### General:

@@ -1,6 +1,0 @@
-JSON = 0
-CSV = 1
-XML = 2
-JPEG = 3
-ELF = 4
-PDF = 5

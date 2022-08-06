@@ -4,12 +4,11 @@ from argparse import ArgumentParser
 from pwn import log
 import mutators
 from file_type import infer_type
-from mutators import JpegMutator
 
 FUZZERS_BY_TYPE = {
     "csv": mutators.CsvMutator,
     "json": mutators.jsonMutationFuzzer,
-    "jpeg": JpegMutator,
+    "jpeg": mutators.JpegMutator,
     "xml": mutators.XMLMutator,
     "plaintext": mutators.PlaintextFuzzer,
 }
@@ -68,41 +67,6 @@ class Harness(object):
                                                 stderr=subprocess.PIPE)
 
         self._fuzzer = FUZZERS_BY_TYPE[seed_type](seed_content)
-
-    """
-    def _read_until_next_prompt(self):
-        self._gdb.recvuntil(b'pwndbg> ', drop=True, timeout=self.TIMEOUT)
-
-    def _break(self, position: str = ""):
-        self._gdb.sendline(f'b {position}'.encode())
-        log.info(b'sent: ' + f'b {position}'.encode())
-        self._gdb.recvuntil(b'Breakpoint ', drop=True, timeout=self.TIMEOUT)
-        breakpoint = self._gdb.recvuntil(b' ', drop=True, timeout=self.TIMEOUT)
-        breakpoint = int(breakpoint.decode())
-        log.info(f"New breakpoint @ {position}")
-        self._read_until_next_prompt()
-        return breakpoint
-
-    def _checkpoint(self):
-        self._gdb.sendline(b'checkpoint')
-        self._gdb.recvuntil(b'checkpoint ', drop=True, timeout=self.TIMEOUT)
-        checkpoint = self._gdb.recvuntil(b': ',
-                                         drop=True,
-                                         timeout=self.TIMEOUT)
-        checkpoint = int(checkpoint.decode())
-        log.info(f"New checkpoint {checkpoint}")
-        self._read_until_next_prompt()
-        return checkpoint
-
-    def _continue(self):
-        log.info("Continuing")
-        self._gdb.sendline(b"continue")
-        self._gdb.recvuntil(b'Continuing.', drop=True, timeout=self.TIMEOUT)
-        
-    def _jump(self, position: str):
-        self._gdb.sendline(f'jump {position}'.encode())
-        self._read_until_next_prompt()
-    """
 
     def _reset(self):
         """

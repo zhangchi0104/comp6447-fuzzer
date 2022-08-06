@@ -5,6 +5,12 @@
 Our fuzzer uses a mixture of different mutation methods involving byte manipulation to achieve memory corruption in the given binary.
 We created a MutatorBase which is the base class for all Mutators, it has predfined mutation methods at byte/bit level. It uses generator pattern that will yield an valid ouput derived from seed by calling `next`.
 
+### Usage
+
+`python3 main.py [binary] [sample_input.txt]`
+e.g 
+`python3 main.py csv1 csv1.txt`
+
 ## The binaries our fuzzer crashes and their methods:
 ### General:
 - Bit flipping: Search through a bytearray created, and randomly flip some of the bits

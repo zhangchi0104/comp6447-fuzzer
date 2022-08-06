@@ -53,6 +53,8 @@ class Harness(object):
     }
 
     def __init__(self, binary: PathLike, seed: PathLike):
+        if '/' not in binary:
+            binary = './' + binary
         self._binary_path = binary
         self._current_checkpoint = 0
         f = open(seed, 'rb')

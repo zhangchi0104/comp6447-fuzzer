@@ -65,7 +65,7 @@ If the program exited abnormally (exitcode < 0), it will also output the exit re
 
 ```
 
-### Our Fuzzer has the following capanilities:
+### Our Fuzzer has the following capabilities:
 - Can find format string
 - Performs buffer overflow
 - Finds integer overflow vulnerabilities
@@ -88,6 +88,10 @@ To detect the filetype, it checks certain headers and/or tails of file. In detai
 - Plaintext: if none of the above
 The harness will instantiate the header based on the filetype detected
 
+## Test Binaries
+- overflow1: Basic buffer overflow on gets call.
+- overflow2: Vulnerability after several safe fgets calls.
+- format_str1: Basic format string vulnerability with printf on unsafe input
 
 ## Improvements
 - Detect code coverage

@@ -95,6 +95,7 @@ The harness will instantiate the header based on the filetype detected
   - The other project [MaaAssistantArknights/MaaAssitantArknights](https://github.com/MaaAssistantArknights/MaaAssistantArknights), that one of our team member contributed to uses this json library made by the same author (@MistEO)
   - MaaAssistantArknights/MaaAssitantArknights uses the vanilla json parser in MistEO/meojson. So it is safe from this bug.
   - The library is written in c++. it  throws out of range error at runtime when feeding in the bad input, it is expected to return a null value just like the vanilla json parser in the same repo.
+  - We included the binary in meojson folder
 
 
 ## Test Binaries

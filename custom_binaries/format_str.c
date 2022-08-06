@@ -10,7 +10,7 @@ int main(void)  {
   char buff[32];
   setbuf(stdout, NULL);
   
-  puts("I have a cool password that you'll never guess muahahaha!");
+  puts("I just echo things back :|");
   
   fgets(buff, sizeof(buff), stdin);
   

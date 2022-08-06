@@ -88,6 +88,15 @@ To detect the filetype, it checks certain headers and/or tails of file. In detai
 - Plaintext: if none of the above
 The harness will instantiate the header based on the filetype detected
 
+## Something Awesome
+### Finding a bug in an open source project
+- [json5](https://github.com/MistEO/meojson/blob/master/include/json5.hpp) in [MistEO/meojson](https://github.com/MistEO/meojson) (commit: 3227f54771cda8d88f515f23e2ec5c37be7f9b62)
+  - This json library is used by the open source project Chi contributed to
+  - The other project [MaaAssistantArknights/MaaAssitantArknights](https://github.com/MaaAssistantArknights/MaaAssistantArknights), that one of our team member contributed to uses this json library made by the same author (@MistEO)
+  - MaaAssistantArknights/MaaAssitantArknights uses the vanilla json parser in MistEO/meojson. So it is safe from this bug.
+  - The library is written in c++. it  throws out of range error at runtime when feeding in the bad input, it is expected to return a null value just like the vanilla json parser in the same repo.
+
+
 ## Test Binaries
 - overflow1: Basic buffer overflow on gets call.
 - overflow2: Vulnerability after several safe fgets calls.
